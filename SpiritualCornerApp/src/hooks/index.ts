@@ -1,2 +1,2 @@
 // Re-export all custom hooks
-// Example: export { useTheme } from './useTheme';
+export { useTheme, ThemeProvider } from './useTheme';

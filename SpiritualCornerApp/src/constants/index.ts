@@ -2,6 +2,8 @@
  * Application-wide constants
  */
 
+export * from './theme';
+
 // App metadata
 export const APP_NAME = 'Góc Tâm Linh';
 export const APP_VERSION = '0.0.1';

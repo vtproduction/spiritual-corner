@@ -1,16 +1,54 @@
-# spiritual_corner
+# Spiritual Corner (Góc Tâm Linh)
 
-A new Flutter project.
+A React Native mobile app serving spiritual and cultural needs for Vietnamese users.
+
+## Features
+
+- 📿 **Văn khấn (Prayers)** – Offline prayer texts with teleprompter reading mode
+- 📅 **Lịch Âm (Lunar Calendar)** – Vietnamese lunar calendar reference *(Coming Soon)*
+- 🌙 **AI Astrology** – Astrological chart interpretation *(Coming Soon)*
+
+## Tech Stack
+
+- **Framework**: React Native (Bare) + TypeScript
+- **Navigation**: React Navigation
+- **State**: Zustand
+- **Storage**: MMKV
+- **Search**: MiniSearch (offline full-text)
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
+### Prerequisites
 
-A few resources to get you started if this is your first Flutter project:
+- Node.js 18+
+- React Native CLI
+- Xcode (for iOS)
+- Android Studio (for Android)
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+### Installation
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```bash
+# Install dependencies
+npm install
+
+# iOS
+cd ios && pod install && cd ..
+npx react-native run-ios
+
+# Android
+npx react-native run-android
+```
+
+## Project Structure
+
+```
+src/
+├── app/          # App entry, navigation, providers
+├── features/     # Feature modules
+├── shared/       # Shared components, hooks, utils
+└── data/         # Data models and services
+```
+
+## License
+
+Private – VTProduction

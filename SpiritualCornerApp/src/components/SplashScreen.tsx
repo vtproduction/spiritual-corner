@@ -6,7 +6,7 @@
 import React, { useEffect, useState } from 'react';
 import { Animated, StyleSheet, Text, View } from 'react-native';
 
-import { useTheme } from '@/hooks';
+import { useTheme } from '../hooks';
 
 interface SplashScreenProps {
   onFinish: () => void;

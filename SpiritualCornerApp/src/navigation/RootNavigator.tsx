@@ -2,7 +2,7 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Text } from 'react-native';
 
-import { HomeScreen, VanKhanScreen, SettingsScreen } from '@/screens';
+import { HomeScreen, VanKhanScreen, SettingsScreen } from '../screens';
 
 export type RootTabParamList = {
   Home: undefined;

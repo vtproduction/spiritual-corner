@@ -6,7 +6,7 @@
 import React, { createContext, useContext, useMemo } from 'react';
 import { useColorScheme } from 'react-native';
 
-import { Theme, lightTheme, darkTheme } from '@/constants/theme';
+import { Theme, lightTheme, darkTheme } from '../constants/theme';
 
 interface ThemeContextType {
   theme: Theme;

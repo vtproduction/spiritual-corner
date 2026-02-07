@@ -9,9 +9,9 @@ import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
-import { RootNavigator } from '@/navigation';
-import { ThemeProvider, useTheme } from '@/hooks';
-import { SplashScreen } from '@/components';
+import { RootNavigator } from './src/navigation';
+import { ThemeProvider, useTheme } from './src/hooks';
+import { SplashScreen } from './src/components';
 
 function AppContent(): React.JSX.Element {
   const { theme, isDark } = useTheme();

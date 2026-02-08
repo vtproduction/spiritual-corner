@@ -3,7 +3,7 @@
  */
 
 // Re-export all types from this folder
-// Example: export * from './prayer';
+export * from './prayer';
 
 // Common types used across the app
 export interface BaseEntity {

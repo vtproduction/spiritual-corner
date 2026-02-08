@@ -1,10 +1,10 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Text, StyleSheet, View } from 'react-native';
+import { Text, StyleSheet } from 'react-native';
 
-import { HomeScreen, VanKhanScreen, SettingsScreen } from '../screens';
+import { HomeScreen, SettingsScreen } from '../screens';
+import { VanKhanNavigator } from './VanKhanNavigator';
 import { useTheme } from '../hooks';
-import { spacing, borderRadius } from '../constants/theme';
 
 export type RootTabParamList = {
   Home: undefined;
@@ -67,7 +67,7 @@ export const RootNavigator: React.FC = () => {
       />
       <Tab.Screen
         name="VanKhan"
-        component={VanKhanScreen}
+        component={VanKhanNavigator}
         options={{
           tabBarLabel: 'Văn khấn',
           tabBarIcon: ({ focused, color }) => (

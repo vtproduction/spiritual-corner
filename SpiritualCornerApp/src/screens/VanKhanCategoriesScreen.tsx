@@ -1,9 +1,9 @@
 /**
  * Văn Khấn Categories Screen
- * Shows list of prayer categories (top-level)
+ * Shows list of prayer categories (flat list from normalized data)
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
   StyleSheet,
   Text,
@@ -12,6 +12,7 @@ import {
   StatusBar,
   ScrollView,
   TouchableOpacity,
+  TextInput,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -24,12 +25,23 @@ type NavigationProp = NativeStackNavigationProp<VanKhanStackParamList, 'Categori
 
 export const VanKhanCategoriesScreen: React.FC = () => {
   const { theme, isDark } = useTheme();
-  const { categories, isLoading } = usePrayers();
+  const { categories, isLoading, getEventsByCategory, search } = usePrayers();
   const navigation = useNavigation<NavigationProp>();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showSearch, setShowSearch] = useState(false);
 
-  const handleCategoryPress = (categoryId: string, title: string) => {
-    navigation.navigate('Packages', { categoryId, categoryTitle: title });
+  const handleCategoryPress = (categoryId: string, categoryName: string) => {
+    navigation.navigate('EventList', { categoryId, categoryName });
   };
+
+  const handleSearchToggle = () => {
+    setShowSearch(!showSearch);
+    if (showSearch) {
+      setSearchQuery('');
+    }
+  };
+
+  const searchResults = searchQuery.trim() ? search(searchQuery) : [];
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
@@ -46,14 +58,31 @@ export const VanKhanCategoriesScreen: React.FC = () => {
               Chọn loại văn khấn bạn cần
             </Text>
           </View>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.searchButton, { backgroundColor: theme.colors.backgroundSecondary }]}
             activeOpacity={0.7}
+            onPress={handleSearchToggle}
           >
-            <Text style={{ color: theme.colors.textTertiary, fontSize: 18 }}>⌕</Text>
+            <Text style={{ color: theme.colors.textTertiary, fontSize: 18 }}>
+              {showSearch ? '✕' : '⌕'}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
+
+      {/* Search Bar */}
+      {showSearch && (
+        <View style={[styles.searchBar, { backgroundColor: theme.colors.backgroundSecondary }]}>
+          <TextInput
+            style={[styles.searchInput, { color: theme.colors.textPrimary }]}
+            placeholder="Tìm kiếm văn khấn..."
+            placeholderTextColor={theme.colors.textTertiary}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            autoFocus
+          />
+        </View>
+      )}
 
       <ScrollView
         style={styles.content}
@@ -64,35 +93,82 @@ export const VanKhanCategoriesScreen: React.FC = () => {
           <Text style={[styles.loadingText, { color: theme.colors.textSecondary }]}>
             Đang tải...
           </Text>
+        ) : searchQuery.trim() ? (
+          /* Search Results */
+          searchResults.length > 0 ? (
+            <View style={[styles.listCard, {
+              backgroundColor: theme.colors.card,
+              borderColor: theme.colors.border,
+            }]}>
+              {searchResults.map((result, index) => (
+                <TouchableOpacity
+                  key={result.event.id}
+                  style={[
+                    styles.listItem,
+                    index < searchResults.length - 1 && {
+                      borderBottomWidth: 1,
+                      borderBottomColor: theme.colors.divider,
+                    },
+                  ]}
+                  activeOpacity={0.6}
+                  onPress={() =>
+                    navigation.navigate('EventDetail', {
+                      eventId: result.event.id,
+                      eventName: result.event.name,
+                    })
+                  }
+                >
+                  <View style={styles.listItemContent}>
+                    <Text style={[styles.itemTitle, { color: theme.colors.textPrimary }]}>
+                      {result.event.name}
+                    </Text>
+                    <Text style={[styles.itemSubtitle, { color: theme.colors.textSecondary }]}>
+                      {result.event.prayers.length} bài khấn
+                      {result.matchType === 'prayerContent' ? ' · Tìm thấy trong nội dung' : ''}
+                    </Text>
+                  </View>
+                  <Text style={[styles.chevron, { color: theme.colors.textMuted }]}>›</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          ) : (
+            <Text style={[styles.loadingText, { color: theme.colors.textSecondary }]}>
+              Không tìm thấy kết quả
+            </Text>
+          )
         ) : (
-          <View style={[styles.listCard, { 
+          /* Category List */
+          <View style={[styles.listCard, {
             backgroundColor: theme.colors.card,
             borderColor: theme.colors.border,
           }]}>
-            {categories.map((category, index) => (
-              <TouchableOpacity
-                key={category.id}
-                style={[
-                  styles.listItem,
-                  index < categories.length - 1 && {
-                    borderBottomWidth: 1,
-                    borderBottomColor: theme.colors.divider,
-                  },
-                ]}
-                activeOpacity={0.6}
-                onPress={() => handleCategoryPress(category.id, category.title)}
-              >
-                <View style={styles.listItemContent}>
-                  <Text style={[styles.itemTitle, { color: theme.colors.textPrimary }]}>
-                    {category.title}
-                  </Text>
-                  <Text style={[styles.itemSubtitle, { color: theme.colors.textSecondary }]}>
-                    {category.childCount} bài khấn
-                  </Text>
-                </View>
-                <Text style={[styles.chevron, { color: theme.colors.textMuted }]}>›</Text>
-              </TouchableOpacity>
-            ))}
+            {categories.map((category, index) => {
+              const eventCount = getEventsByCategory(category.id).length;
+              return (
+                <TouchableOpacity
+                  key={category.id}
+                  style={[
+                    styles.listItem,
+                    index < categories.length - 1 && {
+                      borderBottomWidth: 1,
+                      borderBottomColor: theme.colors.divider,
+                    },
+                  ]}
+                  activeOpacity={0.6}
+                  onPress={() => handleCategoryPress(category.id, category.name)}
+                >
+                  <View style={styles.listItemContent}>
+                    <Text style={[styles.itemTitle, { color: theme.colors.textPrimary }]}>
+                      {category.name}
+                    </Text>
+                    <Text style={[styles.itemSubtitle, { color: theme.colors.textSecondary }]}>
+                      {eventCount} bài khấn
+                    </Text>
+                  </View>
+                  <Text style={[styles.chevron, { color: theme.colors.textMuted }]}>›</Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
         )}
       </ScrollView>
@@ -128,6 +204,16 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.full,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  searchBar: {
+    marginHorizontal: spacing.xl,
+    marginBottom: spacing.md,
+    borderRadius: borderRadius.md,
+    paddingHorizontal: spacing.lg,
+  },
+  searchInput: {
+    height: 44,
+    fontSize: fontSize.md,
   },
   content: {
     flex: 1,

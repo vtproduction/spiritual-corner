@@ -86,6 +86,6 @@ PROJECT_PLAN.md
 SPRINT_1_TASKS.md
 
 # Data Source Files (keep private)
-source.json
+vankhan_final_merged.json
 vn_lunar_holidays_2026.json
 *.data.json

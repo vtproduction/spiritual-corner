@@ -1,67 +1,74 @@
 /**
  * usePrayers Hook
- * React hook for accessing prayer data with loading state
+ * React hook for accessing the normalized prayer data.
+ *
+ * Provides categories, event lookups, prayer lookups, and search.
+ * Data is loaded once and memoized in the service layer.
  */
 
 import { useState, useEffect, useCallback } from 'react';
 import {
-  PrayerItem,
-  PrayerCategory,
+  Category,
+  EventItem,
+  Prayer,
+  SearchResult,
 } from '../types/prayer';
 import {
-  getPrayerCategories,
-  getChildrenByParentId,
-  getPrayerById,
-  getAllPrayers,
-  searchPrayers,
+  getCategories,
+  getEventsByCategory,
+  getEvent,
+  getPrayer,
+  searchEvents,
 } from '../services/prayerService';
 
 interface UsePrayersResult {
-  categories: PrayerCategory[];
+  categories: Category[];
   isLoading: boolean;
-  getChildren: (parentId: string) => PrayerItem[];
-  getItemById: (id: string) => PrayerItem | null;
-  search: (query: string) => PrayerItem[];
-  allPrayers: PrayerItem[];
+  getEventsByCategory: (categoryId: string) => EventItem[];
+  getEvent: (eventId: string) => EventItem | null;
+  getPrayer: (eventId: string, prayerId: string) => Prayer | null;
+  search: (query: string) => SearchResult[];
 }
 
 export const usePrayers = (): UsePrayersResult => {
-  const [categories, setCategories] = useState<PrayerCategory[]>([]);
-  const [allPrayers, setAllPrayers] = useState<PrayerItem[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Load data on mount
-    const loadData = () => {
-      setIsLoading(true);
-      try {
-        setCategories(getPrayerCategories());
-        setAllPrayers(getAllPrayers());
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    loadData();
+    setIsLoading(true);
+    try {
+      setCategories(getCategories());
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
-  const getChildren = useCallback((parentId: string): PrayerItem[] => {
-    return getChildrenByParentId(parentId);
-  }, []);
+  const getEventsByCategoryCb = useCallback(
+    (categoryId: string): EventItem[] => getEventsByCategory(categoryId),
+    [],
+  );
 
-  const getItemById = useCallback((id: string): PrayerItem | null => {
-    return getPrayerById(id);
-  }, []);
+  const getEventCb = useCallback(
+    (eventId: string): EventItem | null => getEvent(eventId),
+    [],
+  );
 
-  const search = useCallback((query: string): PrayerItem[] => {
-    return searchPrayers(query);
-  }, []);
+  const getPrayerCb = useCallback(
+    (eventId: string, prayerId: string): Prayer | null => getPrayer(eventId, prayerId),
+    [],
+  );
+
+  const searchCb = useCallback(
+    (query: string): SearchResult[] => searchEvents(query),
+    [],
+  );
 
   return {
     categories,
     isLoading,
-    getChildren,
-    getItemById,
-    search,
-    allPrayers,
+    getEventsByCategory: getEventsByCategoryCb,
+    getEvent: getEventCb,
+    getPrayer: getPrayerCb,
+    search: searchCb,
   };
 };

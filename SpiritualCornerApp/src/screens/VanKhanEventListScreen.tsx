@@ -1,6 +1,6 @@
 /**
- * Văn Khấn Packages Screen
- * Shows list of prayer packages within a category
+ * Văn Khấn Event List Screen
+ * Shows list of events within a category, with badges for daily/monthly/has-dates.
  */
 
 import React from 'react';
@@ -20,20 +20,20 @@ import { useTheme, usePrayers } from '../hooks';
 import { spacing, borderRadius, fontSize } from '../constants/theme';
 import { VanKhanStackParamList } from '../navigation/VanKhanNavigator';
 
-type NavigationProp = NativeStackNavigationProp<VanKhanStackParamList, 'Packages'>;
-type RouteType = RouteProp<VanKhanStackParamList, 'Packages'>;
+type NavigationProp = NativeStackNavigationProp<VanKhanStackParamList, 'EventList'>;
+type RouteType = RouteProp<VanKhanStackParamList, 'EventList'>;
 
-export const VanKhanPackagesScreen: React.FC = () => {
+export const VanKhanEventListScreen: React.FC = () => {
   const { theme, isDark } = useTheme();
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<RouteType>();
-  const { categoryId, categoryTitle } = route.params;
-  const { getChildren } = usePrayers();
+  const { categoryId, categoryName } = route.params;
+  const { getEventsByCategory } = usePrayers();
 
-  const packages = getChildren(categoryId);
+  const events = getEventsByCategory(categoryId);
 
-  const handlePackagePress = (packageId: string, title: string) => {
-    navigation.navigate('Detail', { packageId, packageTitle: title });
+  const handleEventPress = (eventId: string, eventName: string) => {
+    navigation.navigate('EventDetail', { eventId, eventName });
   };
 
   const handleBack = () => {
@@ -52,25 +52,19 @@ export const VanKhanPackagesScreen: React.FC = () => {
           </TouchableOpacity>
           <View style={styles.headerTitles}>
             <Text style={[styles.breadcrumb, { color: theme.colors.textTertiary }]} numberOfLines={1}>
-              {categoryTitle}
+              {categoryName}
             </Text>
             <Text style={[styles.title, { color: theme.colors.textPrimary }]}>
               Chọn bài văn khấn
             </Text>
           </View>
-          <TouchableOpacity 
-            style={[styles.searchButton, { backgroundColor: theme.colors.backgroundSecondary }]}
-            activeOpacity={0.7}
-          >
-            <Text style={{ color: theme.colors.textTertiary, fontSize: 18 }}>⌕</Text>
-          </TouchableOpacity>
         </View>
       </View>
 
-      {/* Package Count */}
+      {/* Event Count */}
       <View style={styles.countRow}>
         <Text style={[styles.countText, { color: theme.colors.textSecondary }]}>
-          {packages.length} bài văn khấn
+          {events.length} bài văn khấn
         </Text>
       </View>
 
@@ -79,35 +73,54 @@ export const VanKhanPackagesScreen: React.FC = () => {
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
       >
-        <View style={[styles.listCard, { 
+        <View style={[styles.listCard, {
           backgroundColor: theme.colors.card,
           borderColor: theme.colors.border,
         }]}>
-          {packages.map((pkg, index) => (
+          {events.map((event, index) => (
             <TouchableOpacity
-              key={pkg.id}
+              key={event.id}
               style={[
                 styles.listItem,
-                index < packages.length - 1 && {
+                index < events.length - 1 && {
                   borderBottomWidth: 1,
                   borderBottomColor: theme.colors.divider,
                 },
               ]}
               activeOpacity={0.6}
-              onPress={() => handlePackagePress(pkg.id, pkg.title)}
+              onPress={() => handleEventPress(event.id, event.name)}
             >
               <View style={styles.listItemContent}>
                 <Text style={[styles.itemTitle, { color: theme.colors.textPrimary }]}>
-                  {pkg.title}
+                  {event.name}
                 </Text>
-                {pkg.content ? (
-                  <Text 
-                    style={[styles.itemSubtitle, { color: theme.colors.textSecondary }]}
-                    numberOfLines={1}
-                  >
-                    {pkg.content.substring(0, 50)}...
+                {/* Badges */}
+                <View style={styles.badgeRow}>
+                  {event.isDaily && (
+                    <View style={[styles.badge, { backgroundColor: theme.colors.accent + '20' }]}>
+                      <Text style={[styles.badgeText, { color: theme.colors.accent }]}>
+                        Hằng ngày
+                      </Text>
+                    </View>
+                  )}
+                  {event.isMonthly && (
+                    <View style={[styles.badge, { backgroundColor: theme.colors.accent + '20' }]}>
+                      <Text style={[styles.badgeText, { color: theme.colors.accent }]}>
+                        Hằng tháng
+                      </Text>
+                    </View>
+                  )}
+                  {event.prayDateIDs.length > 0 && (
+                    <View style={[styles.badge, { backgroundColor: theme.colors.backgroundSecondary }]}>
+                      <Text style={[styles.badgeText, { color: theme.colors.textSecondary }]}>
+                        Có ngày lễ
+                      </Text>
+                    </View>
+                  )}
+                  <Text style={[styles.prayerCount, { color: theme.colors.textTertiary }]}>
+                    {event.prayers.length} bài
                   </Text>
-                ) : null}
+                </View>
               </View>
               <Text style={[styles.chevron, { color: theme.colors.textMuted }]}>›</Text>
             </TouchableOpacity>
@@ -155,13 +168,6 @@ const styles = StyleSheet.create({
     fontSize: fontSize.xl,
     fontWeight: '600',
   },
-  searchButton: {
-    width: 40,
-    height: 40,
-    borderRadius: borderRadius.full,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   countRow: {
     paddingHorizontal: spacing.xl,
     paddingBottom: spacing.sm,
@@ -200,9 +206,24 @@ const styles = StyleSheet.create({
     fontSize: fontSize.lg,
     fontWeight: '500',
   },
-  itemSubtitle: {
-    fontSize: fontSize.sm,
-    marginTop: 2,
+  badgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 6,
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  badge: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  badgeText: {
+    fontSize: fontSize.xs,
+    fontWeight: '500',
+  },
+  prayerCount: {
+    fontSize: fontSize.xs,
   },
   chevron: {
     fontSize: 24,

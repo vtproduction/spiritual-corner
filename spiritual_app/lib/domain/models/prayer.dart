@@ -4,7 +4,7 @@ part 'prayer.freezed.dart';
 part 'prayer.g.dart';
 
 @freezed
-class Prayer with _$Prayer {
+abstract class Prayer with _$Prayer {
   const factory Prayer({
     required String id,
     required String name,
@@ -12,11 +12,13 @@ class Prayer with _$Prayer {
     required List<String> content,
   }) = _Prayer;
 
+  const Prayer._();
+
   factory Prayer.fromJson(Map<String, dynamic> json) => _$PrayerFromJson(json);
 }
 
 @freezed
-class PrayerItem with _$PrayerItem {
+abstract class PrayerItem with _$PrayerItem {
   const factory PrayerItem({
     required String id,
     @JsonKey(name: 'categoryId') required String categoryId,
@@ -26,25 +28,31 @@ class PrayerItem with _$PrayerItem {
     List<String>? prepare,
   }) = _PrayerItem;
 
+  const PrayerItem._();
+
   factory PrayerItem.fromJson(Map<String, dynamic> json) => _$PrayerItemFromJson(json);
 }
 
 @freezed
-class PrayerCategory with _$PrayerCategory {
+abstract class PrayerCategory with _$PrayerCategory {
   const factory PrayerCategory({
     required String id,
     required String name,
   }) = _PrayerCategory;
 
+  const PrayerCategory._();
+
   factory PrayerCategory.fromJson(Map<String, dynamic> json) => _$PrayerCategoryFromJson(json);
 }
 
 @freezed
-class PrayersData with _$PrayersData {
+abstract class PrayersData with _$PrayersData {
   const factory PrayersData({
     required List<PrayerCategory> categories,
     required List<PrayerItem> items,
   }) = _PrayersData;
+
+  const PrayersData._();
 
   factory PrayersData.fromJson(Map<String, dynamic> json) =>
       _$PrayersDataFromJson(json);

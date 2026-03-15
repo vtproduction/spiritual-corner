@@ -224,7 +224,7 @@ class CalendarScreen extends ConsumerWidget {
               ],
             ),
           ),
-        );
+        ).animate().fadeIn(delay: (index * 15).ms).scale(begin: const Offset(0.9, 0.9));
       },
     );
   }

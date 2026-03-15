@@ -9,7 +9,7 @@ abstract class Prayer with _$Prayer {
     required String id,
     required String name,
     required String intro,
-    required List<String> content,
+    required String content,
   }) = _Prayer;
 
   const Prayer._();
@@ -24,8 +24,8 @@ abstract class PrayerItem with _$PrayerItem {
     @JsonKey(name: 'categoryId') required String categoryId,
     required String name,
     required List<Prayer> prayers,
-    List<String>? detail,
-    List<String>? prepare,
+    String? detail,
+    String? prepare,
   }) = _PrayerItem;
 
   const PrayerItem._();

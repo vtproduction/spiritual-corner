@@ -5,6 +5,7 @@ import '../screens/home_screen.dart';
 import '../screens/prayer_screen.dart';
 import '../screens/prayer_detail_screen.dart';
 import '../screens/teleprompter_screen.dart';
+import '../screens/date_detail_screen.dart';
 import '../widgets/main_layout.dart';
 import '../../domain/models/prayer.dart';
 
@@ -44,6 +45,13 @@ final appRouter = GoRouter(
       builder: (context, state) {
         final prayer = state.extra as Prayer;
         return TeleprompterScreen(prayer: prayer);
+      },
+    ),
+    GoRoute(
+      path: '/date-detail',
+      builder: (context, state) {
+        final lunarDate = state.extra as dynamic; // Can be cast directly in the screen, but better here
+        return DateDetailScreen(lunarDate: lunarDate);
       },
     ),
   ],

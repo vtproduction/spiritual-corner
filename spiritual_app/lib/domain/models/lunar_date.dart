@@ -25,6 +25,8 @@ abstract class LunarDate with _$LunarDate {
     required String ngocHapThongThu,
     required String huongXuatHanh,
     required String gioXuatHanhThuongLy,
+    required List<String> rawDate,
+    required List<String> rawData,
   }) = _LunarDate;
 
   const LunarDate._();
@@ -100,6 +102,8 @@ abstract class LunarDate with _$LunarDate {
       ngocHapThongThu: dataStrList.length > 8 ? dataStrList[8] : '',
       huongXuatHanh: dataStrList.length > 9 ? dataStrList[9] : '',
       gioXuatHanhThuongLy: dataStrList.length > 10 ? dataStrList[10] : '',
+      rawDate: dateStrList,
+      rawData: dataStrList,
     );
   }
 }

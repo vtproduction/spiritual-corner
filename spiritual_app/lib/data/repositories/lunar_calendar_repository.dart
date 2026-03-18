@@ -25,6 +25,8 @@ final lunarCalendarRepositoryProvider = Provider<LunarCalendarRepository>((ref) 
 });
 
 // State providers
+final currentDateProvider = StateProvider<DateTime>((ref) => DateTime.now());
+
 final lunarCalendarProvider = FutureProvider<List<LunarDate>>((ref) async {
   final repository = ref.watch(lunarCalendarRepositoryProvider);
   return repository.getLunarCalendar2026();
@@ -37,5 +39,6 @@ final lunarDateForDayProvider = FutureProvider.family<LunarDate?, DateTime>((ref
 
 final todayLunarDateProvider = FutureProvider<LunarDate?>((ref) async {
   final repository = ref.watch(lunarCalendarRepositoryProvider);
-  return repository.getToday();
+  final currentDate = ref.watch(currentDateProvider);
+  return repository.getLunarDateForSolarDate(currentDate);
 });

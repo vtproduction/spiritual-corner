@@ -15,8 +15,8 @@ class LunarTimeHelper {
   };
 
   /// Returns the current zodiac hour name (e.g. "Tý", "Sửu") based on the current system time.
-  static String getCurrentZodiacHourName() {
-    final now = DateTime.now();
+  static String getCurrentZodiacHourName({DateTime? time}) {
+    final now = time ?? DateTime.now();
     final hour = now.hour;
 
     for (var entry in _zodiacHours.entries) {
@@ -28,8 +28,8 @@ class LunarTimeHelper {
   }
 
   /// Returns a display string for the current time slot, e.g., "Mão (5h-7h)"
-  static String getCurrentTimeSlotString() {
-    final name = getCurrentZodiacHourName();
+  static String getCurrentTimeSlotString({DateTime? time}) {
+    final name = getCurrentZodiacHourName(time: time);
     switch (name) {
       case 'Tý':   return 'Tý (23h-1h)';
       case 'Sửu':  return 'Sửu (1h-3h)';
@@ -86,10 +86,10 @@ class LunarTimeHelper {
 
   /// Determines if the current time slot is "Hoàng Đạo" (Auspicious)
   /// Checks if the current zodiac hour name is present in the hoangDaoString.
-  static bool isCurrentTimeHoangDao(String hoangDaoString) {
+  static bool isCurrentTimeHoangDao(String hoangDaoString, {DateTime? time}) {
     if (hoangDaoString.isEmpty) return true; // Fail safe
 
-    final currentZodiac = getCurrentZodiacHourName();
+    final currentZodiac = getCurrentZodiacHourName(time: time);
     // A simple contains check is usually enough because the rawData contains comma separated zodiac names
     return hoangDaoString.contains(currentZodiac);
   }

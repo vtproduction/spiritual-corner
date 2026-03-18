@@ -36,7 +36,7 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final todayLunarAsync = ref.watch(todayLunarDateProvider);
-    final now = DateTime.now();
+    final now = ref.watch(currentDateProvider);
 
     return Scaffold(
       backgroundColor: AppColors.ivory,
@@ -48,7 +48,7 @@ class HomeScreen extends ConsumerWidget {
                 child: Text('Không có dữ liệu', style: AppTypography.body),
               );
             }
-            return _buildContent(context, lunarDate, now);
+            return _buildContent(context, ref, lunarDate, now);
           },
           loading: () => const Center(
             child: CircularProgressIndicator(color: AppColors.templeRed),
@@ -62,6 +62,7 @@ class HomeScreen extends ConsumerWidget {
 
   Widget _buildContent(
     BuildContext context,
+    WidgetRef ref,
     LunarDate lunarDate,
     DateTime now,
   ) {
@@ -76,17 +77,43 @@ class HomeScreen extends ConsumerWidget {
             Center(
               child: Column(
                 children: [
-                  Text(
-                        _getVietnameseWeekday(now.weekday).toUpperCase(),
-                        style: AppTypography.small.copyWith(
-                          color: AppColors.templeRed,
-                          letterSpacing: 3,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      )
-                      .animate()
-                      .fadeIn(duration: 600.ms, curve: Curves.easeOut)
-                      .slideY(begin: -0.2),
+                  GestureDetector(
+                    onDoubleTap: () async {
+                      final selectedDate = await showDatePicker(
+                        context: context,
+                        initialDate: now,
+                        firstDate: DateTime(2026, 1, 1),
+                        lastDate: DateTime(2026, 12, 31),
+                      );
+                      if (selectedDate == null || !context.mounted) return;
+
+                      final selectedTime = await showTimePicker(
+                        context: context,
+                        initialTime: TimeOfDay.fromDateTime(now),
+                      );
+                      if (selectedTime == null) return;
+
+                      final overridenDateTime = DateTime(
+                        selectedDate.year,
+                        selectedDate.month,
+                        selectedDate.day,
+                        selectedTime.hour,
+                        selectedTime.minute,
+                      );
+                      ref.read(currentDateProvider.notifier).state = overridenDateTime;
+                    },
+                    child: Text(
+                          _getVietnameseWeekday(now.weekday).toUpperCase(),
+                          style: AppTypography.small.copyWith(
+                            color: AppColors.templeRed,
+                            letterSpacing: 3,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        )
+                        .animate()
+                        .fadeIn(duration: 600.ms, curve: Curves.easeOut)
+                        .slideY(begin: -0.2),
+                  ),
                   AppSpacing.gap8,
                   Text(
                     'Ngày ${now.day} Tháng ${now.month} Năm ${now.year}',
@@ -189,9 +216,10 @@ class HomeScreen extends ConsumerWidget {
               builder: (context) {
                 final isHoangDao = LunarTimeHelper.isCurrentTimeHoangDao(
                   lunarDate.hoangDaoTime,
+                  time: now,
                 );
                 final timeSlotString =
-                    LunarTimeHelper.getCurrentTimeSlotString();
+                    LunarTimeHelper.getCurrentTimeSlotString(time: now);
                 final statusText = isHoangDao ? 'Giờ hoàng đạo' : 'Giờ hắc đạo';
                 final bgColor = isHoangDao
                     ? Colors.green.withValues(alpha: 0.1)

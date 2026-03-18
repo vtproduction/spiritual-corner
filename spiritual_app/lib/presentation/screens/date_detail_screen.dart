@@ -9,6 +9,7 @@ import '../../domain/models/lunar_date.dart';
 const dataDetailTitles = [
   "Giờ Hoàng Đạo",
   "Giờ Hắc Đạo",
+  "Việc Nên - Không Nên",
   "Các Ngày Kỵ",
   "Ngũ Hành",
   "Bành Tổ Bách Kỵ Nhật",
@@ -17,7 +18,7 @@ const dataDetailTitles = [
   "Thập Nhị Kiến Trừ",
   "Ngọc Hạp Thông Thư",
   "Hướng xuất hành",
-  "Giờ xuất hành Theo Lý Thuần Phong"
+  "Giờ xuất hành Theo Lý Thuần Phong",
 ];
 
 class DateDetailScreen extends StatelessWidget {
@@ -31,7 +32,10 @@ class DateDetailScreen extends StatelessWidget {
       backgroundColor: AppColors.ivory,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary),
+          icon: const Icon(
+            Icons.arrow_back_ios_new,
+            color: AppColors.textPrimary,
+          ),
           onPressed: () => context.pop(),
         ),
         title: const Text('Luận Giải Chi Tiết'),
@@ -50,7 +54,9 @@ class DateDetailScreen extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppColors.warmPaper,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.gold.withValues(alpha: 0.2)),
+                border: Border.all(
+                  color: AppColors.gold.withValues(alpha: 0.2),
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -58,13 +64,15 @@ class DateDetailScreen extends StatelessWidget {
                   String text = lunarDate.rawDate[index];
                   if (index == 0) text = 'Dương lịch: $text';
                   if (index == 1) text = 'Âm lịch: $text';
-                  
+
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 12.0),
                     child: Text(
                       text,
                       style: AppTypography.body.copyWith(
-                        fontWeight: index < 2 ? FontWeight.bold : FontWeight.normal,
+                        fontWeight: index < 2
+                            ? FontWeight.bold
+                            : FontWeight.normal,
                       ),
                     ),
                   );
@@ -76,9 +84,15 @@ class DateDetailScreen extends StatelessWidget {
 
             // Data Array Section with Titles
             ...List.generate(lunarDate.rawData.length, (index) {
-              final title = index < dataDetailTitles.length ? dataDetailTitles[index] : 'Thông tin khác';
+              final title = index < dataDetailTitles.length
+                  ? dataDetailTitles[index]
+                  : 'Thông tin khác';
               final content = lunarDate.rawData[index];
-              return _buildDataSection(title, content, delayMs: 200 + (index * 50));
+              return _buildDataSection(
+                title,
+                content,
+                delayMs: 200 + (index * 50),
+              );
             }),
           ],
         ),
@@ -86,7 +100,11 @@ class DateDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDataSection(String title, String content, {required int delayMs}) {
+  Widget _buildDataSection(
+    String title,
+    String content, {
+    required int delayMs,
+  }) {
     if (content.isEmpty) return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.only(bottom: 24.0),

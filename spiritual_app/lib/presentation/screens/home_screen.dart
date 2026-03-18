@@ -7,6 +7,7 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
 import '../../data/repositories/lunar_calendar_repository.dart';
 import '../../domain/models/lunar_date.dart';
+import '../../core/utils/lunar_time_helper.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -164,7 +165,9 @@ class HomeScreen extends ConsumerWidget {
                             AppSpacing.gap24,
                             Text(
                               lunarDate.rawDate[3].isNotEmpty
-                                  ? lunarDate.rawDate[3]
+                                  ? LunarTimeHelper.formatZodiacTimeString(
+                                      lunarDate.rawDate[3],
+                                    )
                                   : 'Năm ${lunarDate.lunarYear}',
                               textAlign: TextAlign.center,
                               style: AppTypography.body.copyWith(
@@ -181,6 +184,110 @@ class HomeScreen extends ConsumerWidget {
 
             AppSpacing.gap16,
 
+            // Present Time Indicator Card
+            Builder(
+              builder: (context) {
+                final isHoangDao = LunarTimeHelper.isCurrentTimeHoangDao(
+                  lunarDate.hoangDaoTime,
+                );
+                final timeSlotString =
+                    LunarTimeHelper.getCurrentTimeSlotString();
+                final statusText = isHoangDao ? 'Giờ hoàng đạo' : 'Giờ hắc đạo';
+                final bgColor = isHoangDao
+                    ? Colors.green.withValues(alpha: 0.1)
+                    : Colors.red.withValues(alpha: 0.1);
+                final borderColor = isHoangDao
+                    ? Colors.green.withValues(alpha: 0.3)
+                    : Colors.red.withValues(alpha: 0.3);
+                final iconColor = isHoangDao
+                    ? Colors.green[700]
+                    : Colors.red[700];
+                final icon = isHoangDao
+                    ? Icons.wb_sunny_rounded
+                    : Icons.nights_stay_rounded;
+
+                return Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 16,
+                  ),
+                  decoration: BoxDecoration(
+                    color: bgColor,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: borderColor),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(icon, color: iconColor),
+                      AppSpacing.gap16,
+                      Expanded(
+                        child: RichText(
+                          text: TextSpan(
+                            style: AppTypography.body.copyWith(
+                              color: AppColors.textPrimary,
+                            ),
+                            children: [
+                              const TextSpan(text: 'Hiện tại: '),
+                              TextSpan(
+                                text: '$statusText ',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              TextSpan(
+                                text: timeSlotString,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ).animate().fadeIn(delay: 450.ms).slideY(begin: 0.1);
+              },
+            ),
+
+            AppSpacing.gap16,
+
+            // Nên - Không Nên Card
+            if (lunarDate.rawData.length > 2 && lunarDate.rawData[2].isNotEmpty) ...[
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.warmPaper,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: AppColors.gold.withValues(alpha: 0.1),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Nên - Không Nên',
+                      style: AppTypography.body.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    AppSpacing.gap8,
+                    Text(
+                      lunarDate.rawData[2],
+                      style: AppTypography.body.copyWith(
+                        color: AppColors.textSecondary,
+                        height: 1.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ).animate().fadeIn(delay: 450.ms).slideY(begin: 0.1),
+              AppSpacing.gap16,
+            ],
+
             // Raw Date Array Card
             Container(
               padding: const EdgeInsets.all(16),
@@ -195,9 +302,13 @@ class HomeScreen extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: () {
                   final widgets = <Widget>[];
-                  
+
                   // Display parsed rawDate items
-                  for (int index = 0; index < lunarDate.rawDate.length; index++) {
+                  for (
+                    int index = 0;
+                    index < lunarDate.rawDate.length - 1;
+                    index++
+                  ) {
                     if (index == 3) continue;
 
                     String text = lunarDate.rawDate[index];
@@ -212,9 +323,25 @@ class HomeScreen extends ConsumerWidget {
                     );
                   }
 
+                  // Append Giờ Hoàng Đạo from rawData
+                  if (lunarDate.rawData.length > 1) {
+                    final hoangDaoText =
+                        'Giờ Hoàng Đạo: ${lunarDate.rawData[0]}'.replaceAll(
+                          ';',
+                          ',',
+                        );
+                    widgets.add(
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8.0),
+                        child: _buildFormattedDateText(hoangDaoText),
+                      ),
+                    );
+                  }
+
                   // Append Giờ Hắc Đạo from rawData
                   if (lunarDate.rawData.length > 1) {
-                    final hacDaoText = 'Giờ Hắc Đạo: ${lunarDate.rawData[1]}';
+                    final hacDaoText = 'Giờ Hắc Đạo: ${lunarDate.rawData[1]}'
+                        .replaceAll(';', ',');
                     widgets.add(
                       Padding(
                         padding: const EdgeInsets.only(bottom: 8.0),
@@ -245,7 +372,10 @@ class HomeScreen extends ConsumerWidget {
       final spans = <InlineSpan>[
         TextSpan(
           text: prefix,
-          style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
+          ),
         ),
       ];
 
@@ -258,7 +388,9 @@ class HomeScreen extends ConsumerWidget {
           int lastMatchEnd = 0;
           for (final match in matches) {
             if (match.start > lastMatchEnd) {
-              spans.add(TextSpan(text: rest.substring(lastMatchEnd, match.start)));
+              spans.add(
+                TextSpan(text: rest.substring(lastMatchEnd, match.start)),
+              );
             }
 
             final namePart = match.group(1)!;
@@ -267,13 +399,20 @@ class HomeScreen extends ConsumerWidget {
             final trimmedName = namePart.trim();
             final indexOfName = namePart.indexOf(trimmedName);
             final beforeName = namePart.substring(0, indexOfName);
-            final afterName = namePart.substring(indexOfName + trimmedName.length);
+            final afterName = namePart.substring(
+              indexOfName + trimmedName.length,
+            );
 
             spans.add(TextSpan(text: beforeName));
-            spans.add(TextSpan(
-              text: trimmedName,
-              style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-            ));
+            spans.add(
+              TextSpan(
+                text: trimmedName,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            );
             spans.add(TextSpan(text: '$afterName($timePart)'));
 
             lastMatchEnd = match.end;
@@ -308,4 +447,3 @@ class HomeScreen extends ConsumerWidget {
     }
   }
 }
-

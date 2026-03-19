@@ -27,6 +27,8 @@ abstract class LunarDate with _$LunarDate {
     required String gioXuatHanhThuongLy,
     required List<String> rawDate,
     required List<String> rawData,
+    int? dayType, // 1 = good day, 0 = bad day
+    String? holiday,
   }) = _LunarDate;
 
   const LunarDate._();
@@ -34,6 +36,14 @@ abstract class LunarDate with _$LunarDate {
   factory LunarDate.fromRawJson(Map<String, dynamic> json) {
     final dateStrList = List<String>.from(json['date'] ?? []);
     final dataStrList = List<String>.from(json['data'] ?? []);
+
+    int? dayType;
+    String? holiday;
+    if (json['extras'] != null && json['extras'] is Map<String, dynamic>) {
+      final extras = json['extras'] as Map<String, dynamic>;
+      dayType = extras['type'] as int?;
+      holiday = extras['holiday'] as String?;
+    }
 
     // date[0]: "1-1-2026"
     int solarDay = 1, solarMonth = 1, solarYear = 2026;
@@ -104,6 +114,8 @@ abstract class LunarDate with _$LunarDate {
       gioXuatHanhThuongLy: dataStrList.length > 10 ? dataStrList[10] : '',
       rawDate: dateStrList,
       rawData: dataStrList,
+      dayType: dayType,
+      holiday: holiday,
     );
   }
 }

@@ -182,6 +182,24 @@ class HomeScreen extends ConsumerWidget {
                               AppSpacing.gap4,
                               Text('(Tháng Nhuận)', style: AppTypography.small),
                             ],
+                            if (lunarDate.holiday != null && lunarDate.holiday!.isNotEmpty) ...[
+                              AppSpacing.gap8,
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: AppColors.templeRed.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(color: AppColors.templeRed.withValues(alpha: 0.3)),
+                                ),
+                                child: Text(
+                                  lunarDate.holiday!,
+                                  style: AppTypography.caption.copyWith(
+                                    color: AppColors.templeRed,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
                             AppSpacing.gap24,
                             // Divider
                             Container(

@@ -80,6 +80,54 @@ class DateDetailScreen extends StatelessWidget {
               ),
             ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1),
 
+            if ((lunarDate.holiday != null && lunarDate.holiday!.isNotEmpty) || lunarDate.dayType != null) ...[
+              AppSpacing.gap24,
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  if (lunarDate.holiday != null && lunarDate.holiday!.isNotEmpty)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: AppColors.templeRed.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: AppColors.templeRed.withValues(alpha: 0.3)),
+                      ),
+                      child: Text(
+                        lunarDate.holiday!,
+                        style: AppTypography.caption.copyWith(
+                          color: AppColors.templeRed,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ).animate().fadeIn(delay: 100.ms).slideY(),
+                  if (lunarDate.dayType != null)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: lunarDate.dayType == 1 
+                            ? Colors.green.withValues(alpha: 0.1) 
+                            : Colors.black.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: lunarDate.dayType == 1 
+                            ? Colors.green.withValues(alpha: 0.3) 
+                            : Colors.black.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: Text(
+                        lunarDate.dayType == 1 ? 'Ngày Hoàng Đạo' : 'Ngày Hắc Đạo',
+                        style: AppTypography.caption.copyWith(
+                          color: lunarDate.dayType == 1 ? Colors.green[700] : Colors.black87,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ).animate().fadeIn(delay: 200.ms).slideY(),
+                ],
+              ),
+            ],
+
             AppSpacing.gap32,
 
             // Data Array Section with Titles

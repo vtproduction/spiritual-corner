@@ -13,11 +13,31 @@ final displayedMonthProvider = StateProvider<DateTime>((ref) {
   return DateTime(now.year, now.month, 1);
 });
 
-class CalendarScreen extends ConsumerWidget {
+class CalendarScreen extends ConsumerStatefulWidget {
   const CalendarScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<CalendarScreen> createState() => _CalendarScreenState();
+}
+
+class _CalendarScreenState extends ConsumerState<CalendarScreen> {
+  late final PageController _pageController;
+  final int _initialPage = 1200; // Large center point for infinite scrolling
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(initialPage: _initialPage);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final calendarAsync = ref.watch(lunarCalendarProvider);
     final displayedMonth = ref.watch(displayedMonthProvider);
 
@@ -29,7 +49,7 @@ class CalendarScreen extends ConsumerWidget {
             if (calendar.isEmpty) {
               return Center(child: Text('Không có dữ liệu lịch', style: AppTypography.body));
             }
-            return _buildContent(context, ref, calendar, displayedMonth);
+            return _buildContent(context, calendar, displayedMonth);
           },
           loading: () => const Center(
             child: CircularProgressIndicator(color: AppColors.templeRed),
@@ -42,7 +62,7 @@ class CalendarScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildContent(BuildContext context, WidgetRef ref, List<LunarDate> calendar, DateTime displayedMonth) {
+  Widget _buildContent(BuildContext context, List<LunarDate> calendar, DateTime displayedMonth) {
     final selectedDate = ref.watch(selectedDateProvider);
     
     // Find the current selected LunarDate
@@ -56,70 +76,95 @@ class CalendarScreen extends ConsumerWidget {
       );
     } catch (_) {}
 
-    return Column(
-      children: [
-        // Header (Month / Year Selection)
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.chevron_left, color: AppColors.textPrimary),
-                onPressed: () {
-                  ref.read(displayedMonthProvider.notifier).state = 
-                    DateTime(displayedMonth.year, displayedMonth.month - 1, 1);
-                },
-              ),
-              Text(
-                'Tháng ${displayedMonth.month}, ${displayedMonth.year}',
-                style: AppTypography.title.copyWith(fontSize: 22),
-              ),
-              IconButton(
-                icon: const Icon(Icons.chevron_right, color: AppColors.textPrimary),
-                onPressed: () {
-                  ref.read(displayedMonthProvider.notifier).state = 
-                    DateTime(displayedMonth.year, displayedMonth.month + 1, 1);
-                },
-              ),
-            ],
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      child: Column(
+        children: [
+          // Header (Month / Year Selection)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.chevron_left, color: AppColors.textPrimary),
+                  onPressed: () {
+                    _pageController.previousPage(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                    );
+                  },
+                ),
+                Text(
+                  'Tháng ${displayedMonth.month}, ${displayedMonth.year}',
+                  style: AppTypography.title.copyWith(fontSize: 22),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.chevron_right, color: AppColors.textPrimary),
+                  onPressed: () {
+                    _pageController.nextPage(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
-        ),
-        
-        // Weekdays Header
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].map((day) {
-              return Expanded(
-                child: Center(
-                  child: Text(
-                    day,
-                    style: AppTypography.caption.copyWith(
-                      color: day == 'CN' ? AppColors.templeRed : AppColors.textSecondary,
-                      fontWeight: FontWeight.bold,
+          
+          // Weekdays Header
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].map((day) {
+                return Expanded(
+                  child: Center(
+                    child: Text(
+                      day,
+                      style: AppTypography.caption.copyWith(
+                        color: day == 'CN' ? AppColors.templeRed : AppColors.textSecondary,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
-                ),
-              );
-            }).toList(),
+                );
+              }).toList(),
+            ),
           ),
-        ),
-        
-        AppSpacing.gap16,
+          
+          AppSpacing.gap16,
 
-        // Calendar Grid
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: _buildGrid(ref, calendar, displayedMonth, selectedDate),
-        ),
-        
-        AppSpacing.gap24,
+          // Calendar Grid PageView
+          SizedBox(
+            // Use aspect ratio calculation to provide enough height for the grid
+            height: (MediaQuery.of(context).size.width - 32) / 0.85 * (6 / 7) + 40,
+            child: PageView.builder(
+              controller: _pageController,
+              physics: const BouncingScrollPhysics(),
+              onPageChanged: (index) {
+                final offset = index - _initialPage;
+                final now = DateTime.now();
+                // Update the state so the header text catches up
+                ref.read(displayedMonthProvider.notifier).state = 
+                  DateTime(now.year, now.month + offset, 1);
+              },
+              itemBuilder: (context, index) {
+                final offset = index - _initialPage;
+                final now = DateTime.now();
+                final month = DateTime(now.year, now.month + offset, 1);
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: _buildGrid(calendar, month, selectedDate),
+                );
+              },
+            ),
+          ),
+          
+          AppSpacing.gap24,
 
-        // Specific Item Details
-        Expanded(
-          child: Container(
+          // Specific Item Details
+          Container(
             width: double.infinity,
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
@@ -138,14 +183,19 @@ class CalendarScreen extends ConsumerWidget {
             ),
             child: selectedLunar != null 
                 ? _buildDetailSection(selectedLunar)
-                : Center(child: Text("Chọn một ngày", style: AppTypography.body)),
+                : Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 40),
+                      child: Text("Chọn một ngày", style: AppTypography.body),
+                    ),
+                  ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
-  Widget _buildGrid(WidgetRef ref, List<LunarDate> calendar, DateTime displayedMonth, DateTime selectedDate) {
+  Widget _buildGrid(List<LunarDate> calendar, DateTime displayedMonth, DateTime selectedDate) {
     // Determine days in month and starting weekday
     final daysInMonth = DateUtils.getDaysInMonth(displayedMonth.year, displayedMonth.month);
     final firstDayOfMonth = DateTime(displayedMonth.year, displayedMonth.month, 1);
@@ -213,12 +263,30 @@ class CalendarScreen extends ConsumerWidget {
                 ),
                 if (lunarForCell != null) ...[
                   AppSpacing.gap4,
-                  Text(
-                    '${lunarForCell.lunarDay}',
-                    style: AppTypography.caption.copyWith(
-                      color: isSelected ? AppColors.white.withValues(alpha: 0.8) : AppColors.textSecondary,
-                      fontSize: 10,
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        '${lunarForCell.lunarDay}',
+                        style: AppTypography.caption.copyWith(
+                          color: isSelected ? AppColors.white.withValues(alpha: 0.8) : AppColors.textSecondary,
+                          fontSize: 10,
+                        ),
+                      ),
+                      if (lunarForCell.dayType != null) ...[
+                        const SizedBox(width: 4),
+                        Container(
+                          width: 4,
+                          height: 4,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: lunarForCell.dayType == 1 
+                                ? Colors.green.withValues(alpha: isSelected ? 1.0 : 0.6) 
+                                : Colors.red.withValues(alpha: isSelected ? 1.0 : 0.6),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                 ]
               ],
@@ -230,11 +298,9 @@ class CalendarScreen extends ConsumerWidget {
   }
 
   Widget _buildDetailSection(LunarDate lunarDate) {
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.end,
@@ -263,6 +329,54 @@ class CalendarScreen extends ConsumerWidget {
             ],
           ),
           
+          if ((lunarDate.holiday != null && lunarDate.holiday!.isNotEmpty) || lunarDate.dayType != null) ...[
+            AppSpacing.gap16,
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                if (lunarDate.holiday != null && lunarDate.holiday!.isNotEmpty)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: AppColors.templeRed.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: AppColors.templeRed.withValues(alpha: 0.3)),
+                    ),
+                    child: Text(
+                      lunarDate.holiday!,
+                      style: AppTypography.caption.copyWith(
+                        color: AppColors.templeRed,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                if (lunarDate.dayType != null)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: lunarDate.dayType == 1 
+                          ? Colors.green.withValues(alpha: 0.1) 
+                          : Colors.black.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: lunarDate.dayType == 1 
+                          ? Colors.green.withValues(alpha: 0.3) 
+                          : Colors.black.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Text(
+                      lunarDate.dayType == 1 ? 'Ngày Hoàng Đạo' : 'Ngày Hắc Đạo',
+                      style: AppTypography.caption.copyWith(
+                        color: lunarDate.dayType == 1 ? Colors.green[700] : Colors.black87,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ],
+          
           AppSpacing.gap24,
           
           _buildInfoRow('Giờ Hoàng Đạo', lunarDate.hoangDaoTime),
@@ -273,8 +387,7 @@ class CalendarScreen extends ConsumerWidget {
           AppSpacing.gap16,
           _buildInfoRow('Hướng Xuất Hành', lunarDate.huongXuatHanh),
         ],
-      ),
-    ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1);
+      ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1);
   }
 
   Widget _buildInfoRow(String title, String content) {

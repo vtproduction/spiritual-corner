@@ -76,6 +76,18 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       );
     } catch (_) {}
 
+    // Calculate grid height precisely
+    final daysInMonth = DateUtils.getDaysInMonth(displayedMonth.year, displayedMonth.month);
+    final firstDayOfMonth = DateTime(displayedMonth.year, displayedMonth.month, 1);
+    final emptyLeadingSlots = firstDayOfMonth.weekday - 1; 
+    final totalSlots = emptyLeadingSlots + daysInMonth;
+    final int rows = (totalSlots / 7).ceil();
+
+    final gridWidth = MediaQuery.of(context).size.width - 32; // 16 horizontal padding
+    final itemWidth = (gridWidth - 6 * 8) / 7; // subtract 6 crossAxisSpacings of 8
+    final itemHeight = itemWidth / 1.1; // aspect ratio
+    final gridHeight = rows * itemHeight + (rows - 1) * 8; // add mainAxisSpacings
+
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       child: Column(
@@ -136,9 +148,10 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
           AppSpacing.gap16,
 
           // Calendar Grid PageView
-          SizedBox(
-            // Use aspect ratio calculation to provide enough height for the grid
-            height: (MediaQuery.of(context).size.width - 32) / 0.85 * (6 / 7) + 40,
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+            height: gridHeight,
             child: PageView.builder(
               controller: _pageController,
               physics: const BouncingScrollPhysics(),
@@ -212,7 +225,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       itemCount: rows * 7,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 7,
-        childAspectRatio: 0.85,
+        childAspectRatio: 1.1,
         mainAxisSpacing: 8,
         crossAxisSpacing: 8,
       ),
@@ -259,10 +272,11 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                         ? AppColors.white 
                         : (isSunday ? AppColors.templeRed : AppColors.textPrimary),
                     fontWeight: isSelected || isToday ? FontWeight.bold : FontWeight.normal,
+                    height: 1.0,
                   ),
                 ),
                 if (lunarForCell != null) ...[
-                  AppSpacing.gap4,
+                  const SizedBox(height: 2),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -271,6 +285,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                         style: AppTypography.caption.copyWith(
                           color: isSelected ? AppColors.white.withValues(alpha: 0.8) : AppColors.textSecondary,
                           fontSize: 10,
+                          height: 1.0,
                         ),
                       ),
                       if (lunarForCell.dayType != null) ...[

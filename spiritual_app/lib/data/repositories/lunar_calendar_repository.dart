@@ -13,7 +13,7 @@ class LunarCalendarRepository {
 
   LunarCalendarRepository(this._dataSource);
 
-  Future<List<LunarDate>> getLunarCalendar2026() => _dataSource.getLunarCalendar2026();
+  Future<List<LunarDate>> getAllLunarData() => _dataSource.getAllLunarData();
   Future<LunarDate?> getLunarDateForSolarDate(DateTime date) => _dataSource.getLunarDateForSolarDate(date);
   Future<LunarDate?> getToday() => _dataSource.getToday();
 }
@@ -29,7 +29,7 @@ final currentDateProvider = StateProvider<DateTime>((ref) => DateTime.now());
 
 final lunarCalendarProvider = FutureProvider<List<LunarDate>>((ref) async {
   final repository = ref.watch(lunarCalendarRepositoryProvider);
-  return repository.getLunarCalendar2026();
+  return repository.getAllLunarData();
 });
 
 final lunarDateForDayProvider = FutureProvider.family<LunarDate?, DateTime>((ref, date) async {

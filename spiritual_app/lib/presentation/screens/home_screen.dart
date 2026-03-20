@@ -82,8 +82,8 @@ class HomeScreen extends ConsumerWidget {
                       final selectedDate = await showDatePicker(
                         context: context,
                         initialDate: now,
-                        firstDate: DateTime(2026, 1, 1),
-                        lastDate: DateTime(2026, 12, 31),
+                        firstDate: DateTime(2025, 1, 1),
+                        lastDate: DateTime(2028, 12, 31),
                       );
                       if (selectedDate == null || !context.mounted) return;
 

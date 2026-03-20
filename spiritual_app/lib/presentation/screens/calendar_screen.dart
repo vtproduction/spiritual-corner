@@ -36,6 +36,26 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     super.dispose();
   }
 
+
+  void _showOutOfRangeDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Dữ liệu không khả dụng', style: AppTypography.section),
+        content: Text(
+          'Ứng dụng hiện chỉ hỗ trợ dữ liệu ngoại tuyến từ năm 2025 đến năm 2028.\n\nĐể xem dữ liệu ngoài khoảng thời gian này, vui lòng liên hệ bộ phận hỗ trợ.',
+          style: AppTypography.body,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Đóng', style: AppTypography.body.copyWith(color: AppColors.templeRed, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final calendarAsync = ref.watch(lunarCalendarProvider);
@@ -101,6 +121,11 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                 IconButton(
                   icon: const Icon(Icons.chevron_left, color: AppColors.textPrimary),
                   onPressed: () {
+                    final target = DateTime(displayedMonth.year, displayedMonth.month - 1, 1);
+                    if (target.year < 2025) {
+                      _showOutOfRangeDialog();
+                      return;
+                    }
                     _pageController.previousPage(
                       duration: const Duration(milliseconds: 300),
                       curve: Curves.easeInOut,
@@ -114,6 +139,11 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                 IconButton(
                   icon: const Icon(Icons.chevron_right, color: AppColors.textPrimary),
                   onPressed: () {
+                    final target = DateTime(displayedMonth.year, displayedMonth.month + 1, 1);
+                    if (target.year > 2028) {
+                      _showOutOfRangeDialog();
+                      return;
+                    }
                     _pageController.nextPage(
                       duration: const Duration(milliseconds: 300),
                       curve: Curves.easeInOut,
@@ -158,14 +188,33 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
               onPageChanged: (index) {
                 final offset = index - _initialPage;
                 final now = DateTime.now();
+                final targetMonth = DateTime(now.year, now.month + offset, 1);
+
+                if (targetMonth.year < 2025 || targetMonth.year > 2028) {
+                  _showOutOfRangeDialog();
+                  
+                  final validYear = targetMonth.year < 2025 ? 2025 : 2028;
+                  final validMonth = targetMonth.year < 2025 ? 1 : 12;
+                  final validOffset = (validYear - now.year) * 12 + (validMonth - now.month);
+                  final validIndex = _initialPage + validOffset;
+                  
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    _pageController.jumpToPage(validIndex);
+                  });
+                  return;
+                }
+
                 // Update the state so the header text catches up
-                ref.read(displayedMonthProvider.notifier).state = 
-                  DateTime(now.year, now.month + offset, 1);
+                ref.read(displayedMonthProvider.notifier).state = targetMonth;
               },
               itemBuilder: (context, index) {
                 final offset = index - _initialPage;
                 final now = DateTime.now();
                 final month = DateTime(now.year, now.month + offset, 1);
+                
+                // Keep the grid slightly clean if heavily out of bounds just in case.
+                if (month.year < 2025 || month.year > 2028) return const SizedBox.shrink();
+                
                 return Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: _buildGrid(calendar, month, selectedDate),

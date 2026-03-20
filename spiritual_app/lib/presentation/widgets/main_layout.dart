@@ -26,12 +26,18 @@ class MainLayout extends StatelessWidget {
       currentIndex = 1;
     } else if (location.startsWith('/prayers')) {
       currentIndex = 2;
+    } else if (location.startsWith('/settings')) {
+      currentIndex = 3;
     }
+
+    // Determine the color theme
+    final indicatorColor = Theme.of(context).colorScheme.primary.withValues(alpha: 0.3);
+    final selectedIconColor = Theme.of(context).colorScheme.primary;
 
     return NavigationBar(
       selectedIndex: currentIndex,
-      backgroundColor: AppColors.warmPaper,
-      indicatorColor: AppColors.gold.withValues(alpha: 0.3),
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      indicatorColor: indicatorColor,
       onDestinationSelected: (index) {
         switch (index) {
           case 0:
@@ -43,23 +49,31 @@ class MainLayout extends StatelessWidget {
           case 2:
             context.go('/prayers');
             break;
+          case 3:
+            context.go('/settings');
+            break;
         }
       },
-      destinations: const [
+      destinations: [
         NavigationDestination(
-          icon: Icon(Icons.home_outlined),
-          selectedIcon: Icon(Icons.home, color: AppColors.templeRed),
+          icon: const Icon(Icons.home_outlined),
+          selectedIcon: Icon(Icons.home, color: selectedIconColor),
           label: 'Hôm nay',
         ),
         NavigationDestination(
-          icon: Icon(Icons.calendar_month_outlined),
-          selectedIcon: Icon(Icons.calendar_month, color: AppColors.templeRed),
+          icon: const Icon(Icons.calendar_month_outlined),
+          selectedIcon: Icon(Icons.calendar_month, color: selectedIconColor),
           label: 'Lịch Âm',
         ),
         NavigationDestination(
-          icon: Icon(Icons.menu_book_outlined),
-          selectedIcon: Icon(Icons.menu_book, color: AppColors.templeRed),
+          icon: const Icon(Icons.menu_book_outlined),
+          selectedIcon: Icon(Icons.menu_book, color: selectedIconColor),
           label: 'Văn Khấn',
+        ),
+        NavigationDestination(
+          icon: const Icon(Icons.settings_outlined),
+          selectedIcon: Icon(Icons.settings, color: selectedIconColor),
+          label: 'Cài đặt',
         ),
       ],
     ).animate().slideY(begin: 1.0, duration: 600.ms, curve: Curves.easeOutQuart);

@@ -6,6 +6,7 @@ import '../screens/prayer_screen.dart';
 import '../screens/prayer_detail_screen.dart';
 import '../screens/teleprompter_screen.dart';
 import '../screens/date_detail_screen.dart';
+import '../screens/settings_screen.dart';
 import '../widgets/main_layout.dart';
 import '../../domain/models/prayer.dart';
 
@@ -37,6 +38,10 @@ final appRouter = GoRouter(
               },
             ),
           ],
+        ),
+        GoRoute(
+          path: '/settings',
+          builder: (context, state) => const SettingsScreen(),
         ),
       ],
     ),

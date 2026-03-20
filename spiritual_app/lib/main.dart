@@ -1,25 +1,39 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'core/theme/app_theme.dart';
+import 'core/providers/settings_provider.dart';
 import 'presentation/routing/app_router.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  final prefs = await SharedPreferences.getInstance();
+
   runApp(
-    const ProviderScope(
-      child: SpiritualsCornerApp(),
+    ProviderScope(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+      ],
+      child: const SpiritualsCornerApp(),
     ),
   );
 }
 
-class SpiritualsCornerApp extends StatelessWidget {
+class SpiritualsCornerApp extends ConsumerWidget {
   const SpiritualsCornerApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(settingsProvider);
+
     return MaterialApp.router(
       title: 'Spirituals Corner',
-      theme: AppTheme.lightTheme,
+      themeMode: settings.themeMode,
+      theme: AppTheme.lightTheme(settings.appColor),
+      darkTheme: AppTheme.darkTheme(settings.appColor),
       routerConfig: appRouter,
+      debugShowCheckedModeBanner: false,
     );
   }
 }
